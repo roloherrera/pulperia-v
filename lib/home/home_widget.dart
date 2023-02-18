@@ -1,5 +1,6 @@
 import '../auth/auth_util.dart';
 import '../backend/backend.dart';
+import '../components/bs_factura_widget.dart';
 import '../flutter_flow/flutter_flow_theme.dart';
 import '../flutter_flow/flutter_flow_util.dart';
 import '../flutter_flow/flutter_flow_widgets.dart';
@@ -28,7 +29,7 @@ class _HomeWidgetState extends State<HomeWidget> {
     super.initState();
     _model = createModel(context, () => HomeModel());
 
-    _model.txtNombreProductoController = TextEditingController();
+    _model.txtNombreProductoController ??= TextEditingController();
   }
 
   @override
@@ -47,13 +48,21 @@ class _HomeWidgetState extends State<HomeWidget> {
       appBar: AppBar(
         backgroundColor: FlutterFlowTheme.of(context).primaryColor,
         automaticallyImplyLeading: false,
-        title: Text(
-          'La Pulpe',
-          style: FlutterFlowTheme.of(context).title2.override(
-                fontFamily: 'Poppins',
-                color: Colors.white,
-                fontSize: 22,
-              ),
+        title: InkWell(
+          onTap: () async {
+            GoRouter.of(context).prepareAuthEvent();
+            await signOut();
+
+            context.goNamedAuth('Login', mounted);
+          },
+          child: Text(
+            'La Pulpe',
+            style: FlutterFlowTheme.of(context).title2.override(
+                  fontFamily: 'Poppins',
+                  color: Colors.white,
+                  fontSize: 22,
+                ),
+          ),
         ),
         actions: [],
         centerTitle: false,
@@ -119,35 +128,171 @@ class _HomeWidgetState extends State<HomeWidget> {
                   validator: _model.txtNombreProductoControllerValidator
                       .asValidator(context),
                 ),
-                FFButtonWidget(
-                  onPressed: () async {
-                    final productoCreateData = createProductoRecordData(
-                      nombre: _model.txtNombreProductoController.text,
-                    );
-                    await ProductoRecord.collection
-                        .doc()
-                        .set(productoCreateData);
-                  },
-                  text: 'Agregar',
-                  options: FFButtonOptions(
-                    width: 130,
-                    height: 40,
-                    color: FlutterFlowTheme.of(context).primaryColor,
-                    textStyle: FlutterFlowTheme.of(context).subtitle2.override(
-                          fontFamily: 'Poppins',
-                          color: Colors.white,
+                Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Column(
+                      mainAxisSize: MainAxisSize.max,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: EdgeInsetsDirectional.fromSTEB(0, 5, 0, 5),
+                          child: FFButtonWidget(
+                            onPressed: () async {
+                              final productoCreateData =
+                                  createProductoRecordData(
+                                nombre: _model.txtNombreProductoController.text,
+                              );
+                              await ProductoRecord.collection
+                                  .doc()
+                                  .set(productoCreateData);
+                            },
+                            text: 'Agregar',
+                            options: FFButtonOptions(
+                              width: 130,
+                              height: 36.7,
+                              color: FlutterFlowTheme.of(context).primaryColor,
+                              textStyle: FlutterFlowTheme.of(context)
+                                  .subtitle2
+                                  .override(
+                                    fontFamily: 'Poppins',
+                                    color: Colors.white,
+                                  ),
+                              borderSide: BorderSide(
+                                color: Colors.transparent,
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
                         ),
-                    borderSide: BorderSide(
-                      color: Colors.transparent,
-                      width: 1,
+                        Padding(
+                          padding: EdgeInsetsDirectional.fromSTEB(0, 5, 0, 5),
+                          child: FFButtonWidget(
+                            onPressed: () async {
+                              await showModalBottomSheet(
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                enableDrag: false,
+                                context: context,
+                                builder: (context) {
+                                  return Padding(
+                                    padding: MediaQuery.of(context).viewInsets,
+                                    child: BsFacturaWidget(),
+                                  );
+                                },
+                              ).then((value) => setState(() {}));
+                            },
+                            text: 'Mostrar',
+                            options: FFButtonOptions(
+                              width: 130,
+                              padding:
+                                  EdgeInsetsDirectional.fromSTEB(0, 5, 0, 5),
+                              color: FlutterFlowTheme.of(context).primaryColor,
+                              textStyle: FlutterFlowTheme.of(context)
+                                  .subtitle2
+                                  .override(
+                                    fontFamily: 'Poppins',
+                                    color: Colors.white,
+                                  ),
+                              borderSide: BorderSide(
+                                color: Colors.transparent,
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsetsDirectional.fromSTEB(0, 5, 0, 5),
+                          child: FFButtonWidget(
+                            onPressed: () async {
+                              context.pushNamed('Operaciones');
+                            },
+                            text: 'Calcu',
+                            options: FFButtonOptions(
+                              width: 130,
+                              padding:
+                                  EdgeInsetsDirectional.fromSTEB(0, 5, 0, 5),
+                              color: FlutterFlowTheme.of(context).primaryColor,
+                              textStyle: FlutterFlowTheme.of(context)
+                                  .subtitle2
+                                  .override(
+                                    fontFamily: 'Poppins',
+                                    color: Colors.white,
+                                  ),
+                              borderSide: BorderSide(
+                                color: Colors.transparent,
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    borderRadius: BorderRadius.circular(8),
+                  ],
+                ),
+                Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(20, 20, 20, 20),
+                  child: StreamBuilder<List<FacturaRecord>>(
+                    stream: queryFacturaRecord(
+                      queryBuilder: (facturaRecord) =>
+                          facturaRecord.orderBy('fecha', descending: true),
+                    ),
+                    builder: (context, snapshot) {
+                      // Customize what your widget looks like when it's loading.
+                      if (!snapshot.hasData) {
+                        return Center(
+                          child: SizedBox(
+                            width: 50,
+                            height: 50,
+                            child: CircularProgressIndicator(
+                              color: FlutterFlowTheme.of(context).primaryColor,
+                            ),
+                          ),
+                        );
+                      }
+                      List<FacturaRecord> listViewFacturaRecordList =
+                          snapshot.data!;
+                      return ListView.builder(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        scrollDirection: Axis.vertical,
+                        itemCount: listViewFacturaRecordList.length,
+                        itemBuilder: (context, listViewIndex) {
+                          final listViewFacturaRecord =
+                              listViewFacturaRecordList[listViewIndex];
+                          return ListTile(
+                            title: Text(
+                              listViewFacturaRecord.receptor!,
+                              style: FlutterFlowTheme.of(context).title3,
+                            ),
+                            subtitle: Text(
+                              listViewFacturaRecord.fecha!.toString(),
+                              style: FlutterFlowTheme.of(context).subtitle2,
+                            ),
+                            trailing: Icon(
+                              Icons.arrow_forward_ios,
+                              color: Color(0xFF303030),
+                              size: 20,
+                            ),
+                            tileColor: Color(0xFFF5F5F5),
+                            dense: false,
+                          );
+                        },
+                      );
+                    },
                   ),
                 ),
                 Padding(
                   padding: EdgeInsetsDirectional.fromSTEB(20, 20, 20, 20),
                   child: StreamBuilder<List<ProductoRecord>>(
-                    stream: queryProductoRecord(),
+                    stream: queryProductoRecord(
+                      queryBuilder: (productoRecord) =>
+                          productoRecord.orderBy('nombre'),
+                    ),
                     builder: (context, snapshot) {
                       // Customize what your widget looks like when it's loading.
                       if (!snapshot.hasData) {
@@ -175,6 +320,10 @@ class _HomeWidgetState extends State<HomeWidget> {
                             title: Text(
                               listViewProductoRecord.nombre!,
                               style: FlutterFlowTheme.of(context).title3,
+                            ),
+                            subtitle: Text(
+                              listViewProductoRecord.precio!.toString(),
+                              style: FlutterFlowTheme.of(context).subtitle2,
                             ),
                             trailing: Icon(
                               Icons.arrow_forward_ios,
